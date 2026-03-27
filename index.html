@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Flip Duel</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 6px;
+    color: #f0c040;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .scoreboard {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player-card {
+    background: #16213e;
+    border: 1px solid #2a2a5a;
+    border-radius: 12px;
+    padding: 16px 24px;
+    text-align: center;
+    min-width: 130px;
+  }
+
+  .player-card.you { border-color: #4a90d9; }
+  .player-card.agent { border-color: #d94a90; }
+
+  .player-card .label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .player-card .name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .player-card.you .name { color: #4a90d9; }
+  .player-card.agent .name { color: #d94a90; }
+
+  .player-card .coins {
+    font-size: 26px;
+    font-weight: 700;
+    color: #f0c040;
+  }
+
+  .player-card .bet-info {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 4px;
+    min-height: 18px;
+  }
+
+  .arena {
+    background: #16213e;
+    border: 1px solid #2a2a5a;
+    border-radius: 16px;
+    padding: 28px 36px;
+    text-align: center;
+    margin-bottom: 24px;
+    min-width: 280px;
+  }
+
+  .coin {
+    font-size: 64px;
+    display: block;
+    margin: 0 auto 12px;
+    transition: transform 0.1s;
+    line-height: 1;
+  }
+
+  .coin.flip {
+    animation: coinSpin 0.8s ease-in-out;
+  }
+
+  @keyframes coinSpin {
+    0%   { transform: rotateY(0deg) scale(1); }
+    40%  { transform: rotateY(540deg) scale(1.3); }
+    100% { transform: rotateY(1080deg) scale(1); }
+  }
+
+  .coin-result {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f0c040;
+    min-height: 28px;
+    margin-bottom: 6px;
+  }
+
+  .round-msg {
+    font-size: 14px;
+    color: #aaa;
+    min-height: 20px;
+  }
+
+  .round-msg.win  { color: #4fc46a; }
+  .round-msg.lose { color: #e05555; }
+  .round-msg.draw { color: #f0c040; }
+
+  .controls {
+    background: #16213e;
+    border: 1px solid #2a2a5a;
+    border-radius: 16px;
+    padding: 20px 28px;
+    text-align: center;
+    min-width: 280px;
+  }
+
+  .controls label {
+    font-size: 13px;
+    color: #aaa;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .bet-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .bet-btn {
+    background: #0f3460;
+    border: 1px solid #2a4a7f;
+    color: #eee;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.15s;
+  }
+  .bet-btn:hover { background: #1a5090; }
+
+  #bet-amount {
+    width: 70px;
+    text-align: center;
+    background: #0f3460;
+    border: 1px solid #2a4a7f;
+    color: #f0c040;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .pick-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .pick-btn {
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #0f3460;
+    color: #aaa;
+    transition: all 0.15s;
+  }
+
+  .pick-btn:hover { background: #1a5090; color: #eee; }
+  .pick-btn.selected { border-color: #4a90d9; color: #fff; background: #1a4a80; }
+
+  .flip-btn {
+    width: 100%;
+    padding: 13px;
+    background: #f0c040;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .flip-btn:hover:not(:disabled) { background: #ffd060; transform: scale(1.02); }
+  .flip-btn:disabled { background: #555; color: #888; cursor: not-allowed; transform: none; }
+
+  .log {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .log-title {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .log-list {
+    max-height: 140px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a5a transparent;
+  }
+
+  .log-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    background: #16213e;
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: #aaa;
+  }
+
+  .log-entry .res-you { font-weight: 600; }
+  .log-entry .res-you.w { color: #4fc46a; }
+  .log-entry .res-you.l { color: #e05555; }
+  .log-entry .res-you.d { color: #f0c040; }
+
+  .gameover {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,20,0.88);
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+  }
+  .gameover.show { display: flex; }
+  .gameover h2 { font-size: 42px; color: #f0c040; }
+  .gameover p { color: #aaa; font-size: 15px; max-width: 300px; line-height: 1.6; }
+  .gameover button {
+    margin-top: 8px;
+    padding: 12px 36px;
+    background: #f0c040;
+    color: #1a1a2e;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .gameover button:hover { background: #ffd060; }
+</style>
+</head>
+<body>
+
+<h1>🪙 COIN FLIP DUEL</h1>
+<p class="subtitle">You vs Agent — First to go broke loses!</p>
+
+<div class="scoreboard">
+  <div class="player-card you">
+    <div class="label">You</div>
+    <div class="name">Player</div>
+    <div class="coins" id="you-coins">100</div>
+    <div class="bet-info" id="you-bet"></div>
+  </div>
+  <div class="player-card" style="border-color:#333; min-width:60px; display:flex; align-items:center; justify-content:center;">
+    <span style="font-size:22px; color:#555;">VS</span>
+  </div>
+  <div class="player-card agent">
+    <div class="label">Agent</div>
+    <div class="name">Bot</div>
+    <div class="coins" id="agent-coins">100</div>
+    <div class="bet-info" id="agent-bet"></div>
+  </div>
+</div>
+
+<div class="arena">
+  <span class="coin" id="coin">🪙</span>
+  <div class="coin-result" id="coin-result">—</div>
+  <div class="round-msg" id="round-msg">Place your bet and pick a side!</div>
+</div>
+
+<div class="controls">
+  <label>Your bet</label>
+  <div class="bet-row">
+    <button class="bet-btn" onclick="changeBet(-10)">−10</button>
+    <input type="number" id="bet-amount" value="10" min="1" max="100" readonly>
+    <button class="bet-btn" onclick="changeBet(+10)">+10</button>
+  </div>
+
+  <label>Your pick</label>
+  <div class="pick-row">
+    <button class="pick-btn" id="pick-heads" onclick="setPick('heads')">Heads</button>
+    <button class="pick-btn" id="pick-tails" onclick="setPick('tails')">Tails</button>
+  </div>
+
+  <button class="flip-btn" id="flip-btn" onclick="doFlip()" disabled>FLIP !</button>
+</div>
+
+<div class="log">
+  <div class="log-title">Round History</div>
+  <div class="log-list" id="log-list"></div>
+</div>
+
+<div class="gameover" id="gameover">
+  <h2 id="go-title"></h2>
+  <p id="go-msg"></p>
+  <button onclick="resetGame()">Play Again</button>
+</div>
+
+<script>
+let you = 100, agent = 100, round = 0;
+let bet = 10, pick = null;
+const log = [];
+
+// Simple agent strategy: bet random 10–30% of coins, random pick
+function agentDecide() {
+  const frac = [0.1, 0.2, 0.3][Math.floor(Math.random() * 3)];
+  const b = Math.max(1, Math.min(agent, Math.round(agent * frac)));
+  const p = Math.random() < 0.5 ? 'heads' : 'tails';
+  return { bet: b, pick: p };
+}
+
+function changeBet(delta) {
+  bet = Math.max(1, Math.min(you, bet + delta));
+  document.getElementById('bet-amount').value = bet;
+}
+
+function setPick(p) {
+  pick = p;
+  document.getElementById('pick-heads').classList.toggle('selected', p === 'heads');
+  document.getElementById('pick-tails').classList.toggle('selected', p === 'tails');
+  document.getElementById('flip-btn').disabled = false;
+}
+
+function doFlip() {
+  if (!pick) return;
+  document.getElementById('flip-btn').disabled = true;
+
+  // Agent decides
+  const ab = agentDecide();
+  document.getElementById('you-bet').textContent = 'Bet: ' + bet + ' coins';
+  document.getElementById('agent-bet').textContent = 'Bet: ' + ab.bet + ' coins';
+
+  // Animate
+  const coinEl = document.getElementById('coin');
+  coinEl.classList.remove('flip');
+  void coinEl.offsetWidth;
+  coinEl.classList.add('flip');
+
+  setTimeout(() => {
+    const result = Math.random() < 0.5 ? 'heads' : 'tails';
+    coinEl.textContent = result === 'heads' ? '🟡' : '⚪';
+    document.getElementById('coin-result').textContent = result.toUpperCase();
+
+    // Resolve
+    const youWon  = pick === result;
+    const agentWon = ab.pick === result;
+
+    you   += youWon   ? bet    : -bet;
+    agent += agentWon ? ab.bet : -ab.bet;
+
+    if (you < 0) you = 0;
+    if (agent < 0) agent = 0;
+
+    round++;
+    document.getElementById('you-coins').textContent   = you;
+    document.getElementById('agent-coins').textContent = agent;
+
+    // Round message
+    const rmEl = document.getElementById('round-msg');
+    if (youWon && !agentWon)       { rmEl.textContent = '🎉 You won this round!'; rmEl.className = 'round-msg win'; }
+    else if (!youWon && agentWon)  { rmEl.textContent = '😬 Agent won this round.'; rmEl.className = 'round-msg lose'; }
+    else if (youWon && agentWon)   { rmEl.textContent = '🤝 Both won!'; rmEl.className = 'round-msg draw'; }
+    else                           { rmEl.textContent = '💸 Both lost this round.'; rmEl.className = 'round-msg lose'; }
+
+    // Log
+    log.unshift({
+      round, result,
+      youPick: pick, agentPick: ab.pick,
+      youBet: bet, agentBet: ab.bet,
+      youWon, agentWon
+    });
+    renderLog();
+
+    // Reset UI
+    pick = null;
+    document.getElementById('pick-heads').classList.remove('selected');
+    document.getElementById('pick-tails').classList.remove('selected');
+    document.getElementById('you-bet').textContent = '';
+    document.getElementById('agent-bet').textContent = '';
+    bet = Math.min(bet, you);
+    document.getElementById('bet-amount').value = bet;
+
+    // Check game over
+    if (you <= 0 || agent <= 0) {
+      setTimeout(showGameOver, 600);
+    }
+  }, 900);
+}
+
+function renderLog() {
+  const list = document.getElementById('log-list');
+  list.innerHTML = log.slice(0, 20).map(e => {
+    const rc = e.youWon ? 'w' : (!e.agentWon ? 'l' : 'd');
+    const rtxt = e.youWon ? 'You won' : (!e.agentWon ? 'Both lost' : 'Agent won');
+    return `<div class="log-entry">
+      <span>#${e.round} — ${e.result.toUpperCase()}</span>
+      <span>You: ${e.youPick} (${e.youBet})</span>
+      <span>Bot: ${e.agentPick} (${e.agentBet})</span>
+      <span class="res-you ${rc}">${rtxt}</span>
+    </div>`;
+  }).join('');
+}
+
+function showGameOver() {
+  const won = you > 0 && agent <= 0;
+  document.getElementById('go-title').textContent = won ? '🏆 You Win!' : '💀 You Lost!';
+  document.getElementById('go-msg').textContent =
+    won
+      ? `The bot ran out of coins after ${round} rounds. You finished with ${you} coins!`
+      : `You ran out of coins after ${round} rounds. The bot had ${agent} coins left.`;
+  document.getElementById('gameover').classList.add('show');
+}
+
+function resetGame() {
+  you = agent = 100; round = 0; bet = 10; pick = null;
+  log.length = 0;
+  document.getElementById('you-coins').textContent = 100;
+  document.getElementById('agent-coins').textContent = 100;
+  document.getElementById('bet-amount').value = 10;
+  document.getElementById('coin').textContent = '🪙';
+  document.getElementById('coin-result').textContent = '—';
+  document.getElementById('round-msg').textContent = 'Place your bet and pick a side!';
+  document.getElementById('round-msg').className = 'round-msg';
+  document.getElementById('pick-heads').classList.remove('selected');
+  document.getElementById('pick-tails').classList.remove('selected');
+  document.getElementById('flip-btn').disabled = true;
+  document.getElementById('you-bet').textContent = '';
+  document.getElementById('agent-bet').textContent = '';
+  document.getElementById('gameover').classList.remove('show');
+  renderLog();
+}
+</script>
+</body>
+</html>
